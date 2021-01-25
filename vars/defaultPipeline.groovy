@@ -21,7 +21,9 @@ def call(body) {
   def config = createConfiguration(body)
     
   pipeline {
-    agent config.agentLabel
+    agent {
+      label config.agentLabel
+    }
   
     tools {
       maven config.maven
