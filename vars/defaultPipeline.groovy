@@ -80,7 +80,7 @@ def call(body) {
           withMaven(maven: config.maven, jdk: config.jdk) {
             script {
               def mavenCommand = 'mvn ' +
-                  config.extraMavenArguments +
+                  params.extraMavenArguments +
                   ' -U -Dmaven.test.failure.ignore=true clean verify';
                   
               if (isUnix()) {
@@ -111,7 +111,7 @@ def call(body) {
           withMaven(maven: config.maven, jdk: config.jdk) {
             script {
               def mavenCommand = 'mvn ' +
-                config.extraMavenArguments +
+                params.extraMavenArguments +
                 ' -U -Dmaven.test.failure.ignore=true clean deploy'
                 
               if (isUnix()) {
