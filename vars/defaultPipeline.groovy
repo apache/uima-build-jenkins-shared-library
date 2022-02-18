@@ -21,8 +21,19 @@ def call(body) {
   def config = createConfiguration(body)
     
   pipeline {
+    parameters {
+      string(
+        name: 'extraMavenArguments',
+        defaultValue: config.extraMavenArguments,
+        description: "Extra arguments to be passed to maven (for testing; overrides only current build)")
+      string(
+        name: 'agentLabel',
+        defaultValue: config.agentLabel,
+        description: "Eligible agents (in case a build keeps running on a broken agent; overrides only current build)")
+    }
+
     agent {
-      label config.agentLabel
+      label params.agentLabel ?: config.agentLabel
     }
   
     tools {
@@ -39,14 +50,7 @@ def call(body) {
       // Seems not to be working reliably yet: https://issues.jenkins-ci.org/browse/JENKINS-48556
       // timestamps()
     }
-    
-    parameters {
-      string(
-        name: 'extraMavenArguments',
-        defaultValue: config.extraMavenArguments,
-        description: "Extra arguments to be passed to maven (for testing; overrides only current build)")
-    }
-  
+      
     stages {
       // Display information about the build environemnt. This can be useful for debugging
       // build issues.
