@@ -137,7 +137,7 @@ def call(body) {
       }
       
       stage("Documentation build") {
-        when { config.documentation.size() > 0 }
+        when { expression { config.documentation.size() > 0 } }
         
         steps {
           script {
