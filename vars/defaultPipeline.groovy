@@ -133,20 +133,15 @@ def call(body) {
             def javaDocIssues = scanForIssues tool: javaDoc()
             publishIssues issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
           }
-          
-          script {
-            if (config.docPath != null) {
-              publishHTML([
-                allowMissing: false, 
-                alwaysLinkToLastBuild: true, 
-                keepAll: false, 
-                reportDir: config.docPath, 
-                includes: '**/*',
-                reportFiles: 'index.html', 
-                reportName: 'Documentation', 
-                reportTitles: 'Documentation'
-              ])
-            }
+        }
+      }
+      
+      stage("Documentation build") {
+        when { config.documentation.size() > 0 }
+        
+        script {
+          for (doc in config.documentation) {
+            publishHTML(doc)
           }
         }
       }

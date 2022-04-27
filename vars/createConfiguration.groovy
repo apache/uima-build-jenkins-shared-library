@@ -23,7 +23,7 @@ def call(body) {
     maven: 'maven_latest',
     jdk: 'jdk_1.8_latest',
     extraMavenArguments: '',
-    docPath: null
+    documentation: []
   ]
   
   body.resolveStrategy = Closure.DELEGATE_FIRST
