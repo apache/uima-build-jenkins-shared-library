@@ -133,6 +133,21 @@ def call(body) {
             def javaDocIssues = scanForIssues tool: javaDoc()
             publishIssues issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
           }
+          
+          script {
+            if (config.docPath != null) {
+              publishHTML([
+                allowMissing: false, 
+                alwaysLinkToLastBuild: true, 
+                keepAll: false, 
+                reportDir: config.docPath, 
+                includes: '**/*',
+                reportFiles: 'index.html', 
+                reportName: 'Documentation', 
+                reportTitles: 'Documentation'
+              ])
+            }
+          }
         }
       }
     }
