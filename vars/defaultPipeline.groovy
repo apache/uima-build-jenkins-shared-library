@@ -139,9 +139,11 @@ def call(body) {
       stage("Documentation build") {
         when { config.documentation.size() > 0 }
         
-        script {
-          for (doc in config.documentation) {
-            publishHTML(doc)
+        steps {
+          script {
+            for (doc in config.documentation) {
+              publishHTML(doc)
+            }
           }
         }
       }
