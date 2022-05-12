@@ -62,7 +62,7 @@ def call(body) {
           }
   
           agent {
-            label labelValue ? "(${labelValue}) && ${PLATFORM}" : "${PLATFORM}"" 
+            label labelValue ? "(${labelValue}) && ${PLATFORM}" : "${PLATFORM}"
           }
            
           stages {
