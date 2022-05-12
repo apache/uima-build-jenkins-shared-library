@@ -18,9 +18,9 @@
   under the License.
 */
 def call(body) {
-  def config = createConfiguration(body)
+  config = createConfiguration(body)
   
-  def labelValue = (params.agentLabel ?:config.agentLabel)?.trim()
+  labelValue = (params.agentLabel ?:config.agentLabel)?.trim()
   
   pipeline {
     parameters {
