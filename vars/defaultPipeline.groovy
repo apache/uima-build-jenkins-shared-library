@@ -19,7 +19,9 @@
 */
 def call(body) {
   def config = createConfiguration(body)
-    
+  
+  def labelValue = (params.agentLabel ?:config.agentLabel)?.trim()
+  
   pipeline {
     parameters {
       string(
@@ -60,7 +62,7 @@ def call(body) {
           }
   
           agent {
-            label params.agentLabel ?: "(" + config.agentLabel + ") && ${PLATFORM}"
+            label labelValue ? "(${labelValue}) && ${PLATFORM}" : "${PLATFORM}"" 
           }
            
           stages {
