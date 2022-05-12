@@ -65,8 +65,14 @@ def call(body) {
           stages {
             // Display information about the build environemnt. This can be useful for debugging
             // build issues.
-            stage("Build info (${PLATFORM})") {
+            stage("Info") {
               steps {
+                script {
+                  stage("${PLATFORM}") {
+                    print "PLATFORM: ${PLATFORM}"
+                  }
+                }
+
                 echo '=== Environment variables ==='
                 script {
                   if (isUnix()) {
@@ -83,7 +89,7 @@ def call(body) {
             // sources plugin triggers a build for a merge request. To avoid conflicts with other
             // builds, this stage should not deploy artifacts to the Maven repository server and
             // also not install them locally.
-            stage("Pull request build (${PLATFORM})") {
+            stage("PR build") {
               when { branch 'PR-*' }
             
               steps {
@@ -119,7 +125,7 @@ def call(body) {
             // Perform a SNAPSHOT build of a main branch. This stage is typically executed after a
             // merge request has been merged. On success, it deploys the generated artifacts to the
             // Maven repository server.
-            stage("SNAPSHOT build (${PLATFORM})") {
+            stage("SNAPSHOT build") {
               when { branch pattern: "main|main-v2", comparator: "REGEXP" }
               
               steps {
