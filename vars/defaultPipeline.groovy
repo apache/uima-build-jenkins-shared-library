@@ -46,9 +46,6 @@ def call(body) {
         numToKeepStr: '25',
         artifactNumToKeepStr: '5'
       ))
-      
-      // Seems not to be working reliably yet: https://issues.jenkins-ci.org/browse/JENKINS-48556
-      // timestamps()
     }
       
     stages {
@@ -70,6 +67,8 @@ def call(body) {
             // build issues.
             stage("Build info") {
               steps {
+                echo "Label value: ${labelValue}"
+                echo "Config value: ${config}"
                 echo '=== Environment variables ==='
                 script {
                   if (isUnix()) {
