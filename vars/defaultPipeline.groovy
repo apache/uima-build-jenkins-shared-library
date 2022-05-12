@@ -144,7 +144,7 @@ def call(body) {
                   def mavenConsoleIssues = scanForIssues tool: mavenConsole()
                   def javaIssues = scanForIssues tool: java()
                   def javaDocIssues = scanForIssues tool: javaDoc()
-                  publishIssues issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
+                  publishIssues id: "analysis-${PLATFORM}", issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
                 }
               }
             }
