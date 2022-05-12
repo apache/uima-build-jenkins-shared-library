@@ -18,8 +18,8 @@
   under the License.
 */
 def call(body) {
+  // Must not "def" these variables, otherwise they won't be available to the matrix steps!
   config = createConfiguration(body)
-  
   labelValue = (params.agentLabel ?:config.agentLabel)?.trim()
   
   pipeline {
@@ -65,10 +65,8 @@ def call(body) {
           stages {
             // Display information about the build environemnt. This can be useful for debugging
             // build issues.
-            stage("Build info") {
+            stage("Build info (${PLATFORM})") {
               steps {
-                echo "Label value: ${labelValue}"
-                echo "Config value: ${config}"
                 echo '=== Environment variables ==='
                 script {
                   if (isUnix()) {
@@ -85,7 +83,7 @@ def call(body) {
             // sources plugin triggers a build for a merge request. To avoid conflicts with other
             // builds, this stage should not deploy artifacts to the Maven repository server and
             // also not install them locally.
-            stage("Pull request build") {
+            stage("Pull request build (${PLATFORM})") {
               when { branch 'PR-*' }
             
               steps {
@@ -121,7 +119,7 @@ def call(body) {
             // Perform a SNAPSHOT build of a main branch. This stage is typically executed after a
             // merge request has been merged. On success, it deploys the generated artifacts to the
             // Maven repository server.
-            stage("SNAPSHOT build") {
+            stage("SNAPSHOT build (${PLATFORM})") {
               when { branch pattern: "main|main-v2", comparator: "REGEXP" }
               
               steps {
