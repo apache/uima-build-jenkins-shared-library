@@ -147,9 +147,9 @@ def call(body) {
                 }
                 
                 script {
-                  def mavenConsoleIssues = scanForIssues tool: mavenConsole("maven-${PLATFORM}")
-                  def javaIssues = scanForIssues tool: java("java-${PLATFORM}")
-                  def javaDocIssues = scanForIssues tool: javaDoc("javaDoc-${PLATFORM}")
+                  def mavenConsoleIssues = scanForIssues tool: mavenConsole(id: "maven-${PLATFORM}")
+                  def javaIssues = scanForIssues tool: java(id: "java-${PLATFORM}")
+                  def javaDocIssues = scanForIssues tool: javaDoc(id: "javaDoc-${PLATFORM}")
                   def analysisId = "analysis-${PLATFORM}"
                   echo "analysisId: ${analysisId}"
                   publishIssues id: analysisId, issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
