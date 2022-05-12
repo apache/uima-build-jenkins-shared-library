@@ -18,8 +18,10 @@
   under the License.
 */
 def call(body) {
-  def config = createConfiguration(body)
-    
+  // Must not "def" these variables, otherwise they won't be available to the matrix steps!
+  config = createConfiguration(body)
+  labelValue = (params.agentLabel ?:config.agentLabel)?.trim()
+  
   pipeline {
     parameters {
       string(
@@ -32,9 +34,7 @@ def call(body) {
         description: "Eligible agents (in case a build keeps running on a broken agent; overrides only current build)")
     }
 
-    agent {
-      label params.agentLabel ?: config.agentLabel
-    }
+    agent none
   
     tools {
       maven config.maven
@@ -46,92 +46,114 @@ def call(body) {
         numToKeepStr: '25',
         artifactNumToKeepStr: '5'
       ))
-      
-      // Seems not to be working reliably yet: https://issues.jenkins-ci.org/browse/JENKINS-48556
-      // timestamps()
     }
       
     stages {
-      // Display information about the build environemnt. This can be useful for debugging
-      // build issues.
-      stage("Build info") {
-        steps {
-          echo '=== Environment variables ==='
-          script {
-            if (isUnix()) {
-              sh 'printenv'
+      stage('Build') {
+        matrix {
+          axes {
+            axis {
+                name 'PLATFORM'
+                values 'ubuntu', 'Windows'
             }
-            else {
-              bat 'set'
-            }
-          }
-        }
-      }
-          
-      // Perform a merge request build. This is a conditional stage executed with the GitLab
-      // sources plugin triggers a build for a merge request. To avoid conflicts with other
-      // builds, this stage should not deploy artifacts to the Maven repository server and
-      // also not install them locally.
-      stage("Pull request build") {
-        when { branch 'PR-*' }
-      
-        steps {
-          script {
-            currentBuild.description = 'Triggered by: <a href="' + CHANGE_URL + '">' + BRANCH_NAME +
-              ': ' + env.CHANGE_BRANCH + '</a> (' +  env.CHANGE_AUTHOR_DISPLAY_NAME + ')'
           }
   
-          withMaven(maven: config.maven, jdk: config.jdk) {
-            script {
-              def mavenCommand = 'mvn ' +
-                  params.extraMavenArguments +
-                  ' -U -Dmaven.test.failure.ignore=true clean verify';
-                  
-              if (isUnix()) {
-                sh script: mavenCommand
-              }
-              else {
-                bat script: mavenCommand
+          agent {
+            label labelValue ? "(${labelValue}) && ${PLATFORM}" : "${PLATFORM}"
+          }
+           
+          stages {
+            // Display information about the build environemnt. This can be useful for debugging
+            // build issues.
+            stage("Info") {
+              steps {
+                script {
+                  stage("${PLATFORM}") {
+                    print "PLATFORM: ${PLATFORM}"
+                  }
+                }
+
+                echo '=== Environment variables ==='
+                script {
+                  if (isUnix()) {
+                    sh 'printenv'
+                  }
+                  else {
+                    bat 'set'
+                  }
+                }
               }
             }
-          }
-          
-          script {
-            def mavenConsoleIssues = scanForIssues tool: mavenConsole()
-            def javaIssues = scanForIssues tool: java()
-            def javaDocIssues = scanForIssues tool: javaDoc()
-            publishIssues issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
-          }
-        }
-      }
-      
-      // Perform a SNAPSHOT build of a main branch. This stage is typically executed after a
-      // merge request has been merged. On success, it deploys the generated artifacts to the
-      // Maven repository server.
-      stage("SNAPSHOT build") {
-        when { branch pattern: "main|main-v2", comparator: "REGEXP" }
-        
-        steps {
-          withMaven(maven: config.maven, jdk: config.jdk) {
-            script {
-              def mavenCommand = 'mvn ' +
-                params.extraMavenArguments +
-                ' -U -Dmaven.test.failure.ignore=true clean deploy'
                 
-              if (isUnix()) {
-                sh script: mavenCommand
-              }
-              else {
-                bat script: mavenCommand
+            // Perform a merge request build. This is a conditional stage executed with the GitLab
+            // sources plugin triggers a build for a merge request. To avoid conflicts with other
+            // builds, this stage should not deploy artifacts to the Maven repository server and
+            // also not install them locally.
+            stage("PR build") {
+              when { branch 'PR-*' }
+            
+              steps {
+                script {
+                  currentBuild.description = 'Triggered by: <a href="' + CHANGE_URL + '">' + BRANCH_NAME +
+                    ': ' + env.CHANGE_BRANCH + '</a> (' +  env.CHANGE_AUTHOR_DISPLAY_NAME + ')'
+                }
+        
+                withMaven(maven: config.maven, jdk: config.jdk) {
+                  script {
+                    def mavenCommand = 'mvn ' +
+                        params.extraMavenArguments +
+                        ' -U -Dmaven.test.failure.ignore=true clean verify';
+                        
+                    if (isUnix()) {
+                      sh script: mavenCommand
+                    }
+                    else {
+                      bat script: mavenCommand
+                    }
+                  }
+                }
+                
+                script {
+                  def mavenConsoleIssues = scanForIssues tool: mavenConsole()
+                  def javaIssues = scanForIssues tool: java()
+                  def javaDocIssues = scanForIssues tool: javaDoc()
+                  publishIssues issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
+                }
               }
             }
-          }
-          
-          script {
-            def mavenConsoleIssues = scanForIssues tool: mavenConsole()
-            def javaIssues = scanForIssues tool: java()
-            def javaDocIssues = scanForIssues tool: javaDoc()
-            publishIssues issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
+            
+            // Perform a SNAPSHOT build of a main branch. This stage is typically executed after a
+            // merge request has been merged. On success, it deploys the generated artifacts to the
+            // Maven repository server.
+            stage("SNAPSHOT build") {
+              when { branch pattern: "main|main-v2", comparator: "REGEXP" }
+              
+              steps {
+                withMaven(maven: config.maven, jdk: config.jdk) {
+                  script {
+                    def finalStep = PLATFORM == "ubuntu" ? "deploy" : "verify"
+                    
+                    def mavenCommand = 'mvn ' +
+                      params.extraMavenArguments +
+                      ' -U -Dmaven.test.failure.ignore=true clean deploy'
+                      
+                    if (isUnix()) {
+                      sh script: mavenCommand
+                    }
+                    else {
+                      bat script: mavenCommand
+                    }
+                  }
+                }
+                
+                script {
+                  def mavenConsoleIssues = scanForIssues tool: mavenConsole()
+                  def javaIssues = scanForIssues tool: java()
+                  def javaDocIssues = scanForIssues tool: javaDoc()
+                  publishIssues id: "analysis-${PLATFORM}", issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
+                }
+              }
+            }
           }
         }
       }
