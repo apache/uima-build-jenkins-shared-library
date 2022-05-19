@@ -21,7 +21,7 @@ def call(body) {
   def config = [
     agentLabel: '',
     maven: 'maven_latest',
-    jdk: 'jdk_1.8_latest',
+    jdk: 'jdk_11_latest',
     extraMavenArguments: ''
   ]
   
