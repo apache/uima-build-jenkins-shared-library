@@ -50,6 +50,7 @@ def call(body) {
         numToKeepStr: '25',
         artifactNumToKeepStr: '5'
       ))
+      skipDefaultCheckout()
     }
       
     stages {
