@@ -22,7 +22,8 @@ def call(body) {
     agentLabel: '',
     maven: 'maven_latest',
     jdk: 'jdk_11_latest',
-    extraMavenArguments: ''
+    extraMavenArguments: '',
+    wipeWorkspaceAfterBuild: true
   ]
   
   body.resolveStrategy = Closure.DELEGATE_FIRST

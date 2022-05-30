@@ -32,6 +32,10 @@ def call(body) {
         name: 'agentLabel',
         defaultValue: config.agentLabel,
         description: "Eligible agents (in case a build keeps running on a broken agent; overrides only current build)")
+      booleanParam(
+        name: 'wipeWorkspaceAfterBuild',
+        defaultValue: config.wipeWorkspaceAfterBuild,
+        description: "Wipe workspace after build (for testing; next build only)")
     }
 
     agent none
@@ -151,6 +155,20 @@ def call(body) {
                   def javaIssues = scanForIssues tool: java()
                   def javaDocIssues = scanForIssues tool: javaDoc()
                   publishIssues id: "analysis-${PLATFORM}", issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
+                }
+              }
+            }
+          }
+          
+          post {
+            always {
+              script {
+                if (params.wipeWorkspaceAfterBuild) {
+                  echo "Wiping workspace..."
+                  cleanWs(cleanWhenNotBuilt: false,
+                          deleteDirs: true,
+                          disableDeferredWipeout: true,
+                          notFailBuild: true)
                 }
               }
             }
