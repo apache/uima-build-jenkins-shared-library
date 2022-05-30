@@ -66,7 +66,11 @@ def call(body) {
           agent {
             label labelValue ? "(${labelValue}) && ${PLATFORM}" : "${PLATFORM}"
           }
-           
+          
+          options {
+            skipDefaultCheckout()
+          }
+      
           stages {
             stage("Checkout code") {
               steps {
