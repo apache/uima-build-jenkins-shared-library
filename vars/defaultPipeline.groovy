@@ -102,7 +102,7 @@ def call(body) {
                     ': ' + env.CHANGE_BRANCH + '</a> (' +  env.CHANGE_AUTHOR_DISPLAY_NAME + ')'
                 }
         
-                withMaven(maven: config.maven, jdk: config.jdk) {
+                withMaven(maven: config.maven, jdk: config.jdk, mavenLocalRepo: "$WORKSPACE/.repository") {
                   script {
                     def mavenCommand = 'mvn ' +
                         params.extraMavenArguments +
@@ -133,7 +133,7 @@ def call(body) {
               when { branch pattern: "main|main-v2", comparator: "REGEXP" }
               
               steps {
-                withMaven(maven: config.maven, jdk: config.jdk) {
+                withMaven(maven: config.maven, jdk: config.jdk, mavenLocalRepo: "$WORKSPACE/.repository") {
                   script {
                     def finalStep = PLATFORM == "ubuntu" ? "deploy" : "verify"
                     
