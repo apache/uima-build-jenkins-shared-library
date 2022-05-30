@@ -67,6 +67,14 @@ def call(body) {
           }
            
           stages {
+            stage("Checkout code") {
+              steps {
+                dir('checkout') {
+                  checkout scm
+                }
+              }
+            }
+            
             // Display information about the build environemnt. This can be useful for debugging
             // build issues.
             stage("Info") {
@@ -102,26 +110,28 @@ def call(body) {
                     ': ' + env.CHANGE_BRANCH + '</a> (' +  env.CHANGE_AUTHOR_DISPLAY_NAME + ')'
                 }
         
-                withMaven(maven: config.maven, jdk: config.jdk, mavenLocalRepo: "$WORKSPACE/.repository") {
-                  script {
-                    def mavenCommand = 'mvn ' +
-                        params.extraMavenArguments +
-                        ' -U -Dmaven.test.failure.ignore=true clean verify';
-                        
-                    if (isUnix()) {
-                      sh script: mavenCommand
-                    }
-                    else {
-                      bat script: mavenCommand
+                dir('checkout') {
+                  withMaven(maven: config.maven, jdk: config.jdk, mavenLocalRepo: "$WORKSPACE/.repository") {
+                    script {
+                      def mavenCommand = 'mvn ' +
+                          params.extraMavenArguments +
+                          ' -U -Dmaven.test.failure.ignore=true clean verify';
+                          
+                      if (isUnix()) {
+                        sh script: mavenCommand
+                      }
+                      else {
+                        bat script: mavenCommand
+                      }
                     }
                   }
-                }
-                
-                script {
-                  def mavenConsoleIssues = scanForIssues tool: mavenConsole()
-                  def javaIssues = scanForIssues tool: java()
-                  def javaDocIssues = scanForIssues tool: javaDoc()
-                  publishIssues id: "analysis-${PLATFORM}", issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
+                  
+                  script {
+                    def mavenConsoleIssues = scanForIssues tool: mavenConsole()
+                    def javaIssues = scanForIssues tool: java()
+                    def javaDocIssues = scanForIssues tool: javaDoc()
+                    publishIssues id: "analysis-${PLATFORM}", issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
+                  }
                 }
               }
             }
@@ -133,28 +143,30 @@ def call(body) {
               when { branch pattern: "main|main-v2", comparator: "REGEXP" }
               
               steps {
-                withMaven(maven: config.maven, jdk: config.jdk, mavenLocalRepo: "$WORKSPACE/.repository") {
-                  script {
-                    def finalStep = PLATFORM == "ubuntu" ? "deploy" : "verify"
-                    
-                    def mavenCommand = 'mvn ' +
-                      params.extraMavenArguments +
-                      ' -U -Dmaven.test.failure.ignore=true clean deploy'
+                dir('checkout') {
+                  withMaven(maven: config.maven, jdk: config.jdk, mavenLocalRepo: "$WORKSPACE/.repository") {
+                    script {
+                      def finalStep = PLATFORM == "ubuntu" ? "deploy" : "verify"
                       
-                    if (isUnix()) {
-                      sh script: mavenCommand
-                    }
-                    else {
-                      bat script: mavenCommand
+                      def mavenCommand = 'mvn ' +
+                        params.extraMavenArguments +
+                        ' -U -Dmaven.test.failure.ignore=true clean deploy'
+                        
+                      if (isUnix()) {
+                        sh script: mavenCommand
+                      }
+                      else {
+                        bat script: mavenCommand
+                      }
                     }
                   }
-                }
-                
-                script {
-                  def mavenConsoleIssues = scanForIssues tool: mavenConsole()
-                  def javaIssues = scanForIssues tool: java()
-                  def javaDocIssues = scanForIssues tool: javaDoc()
-                  publishIssues id: "analysis-${PLATFORM}", issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
+                  
+                  script {
+                    def mavenConsoleIssues = scanForIssues tool: mavenConsole()
+                    def javaIssues = scanForIssues tool: java()
+                    def javaDocIssues = scanForIssues tool: javaDoc()
+                    publishIssues id: "analysis-${PLATFORM}", issues: [mavenConsoleIssues, javaIssues, javaDocIssues]
+                  }
                 }
               }
             }
