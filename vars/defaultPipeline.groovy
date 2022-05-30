@@ -161,7 +161,7 @@ def call(body) {
           }
           
           post {
-            always {
+            success {
               script {
                 if (params.wipeWorkspaceAfterBuild) {
                   echo "Wiping workspace..."
