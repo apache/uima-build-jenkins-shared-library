@@ -23,6 +23,7 @@ def call(body) {
     maven: 'maven_latest',
     jdk: 'jdk_17_latest',
     extraMavenArguments: '',
+    wipeWorkspaceBeforeBuild: true,
     wipeWorkspaceAfterBuild: true
   ]
   

@@ -33,6 +33,10 @@ def call(body) {
         defaultValue: config.agentLabel,
         description: "Eligible agents (in case a build keeps running on a broken agent; overrides only current build)")
       booleanParam(
+        name: 'wipeWorkspaceBeforeBuild',
+        defaultValue: config.wipeWorkspaceBeforeBuild,
+        description: "Wipe workspace before build (for testing; next build only)")
+      booleanParam(
         name: 'wipeWorkspaceAfterBuild',
         defaultValue: config.wipeWorkspaceAfterBuild,
         description: "Wipe workspace after build (for testing; next build only)")
@@ -74,6 +78,16 @@ def call(body) {
           stages {
             stage("Checkout code") {
               steps {
+                script {
+                  if (params.wipeWorkspaceBeforeBuild) {
+                    echo "Wiping workspace..."
+                    cleanWs(cleanWhenNotBuilt: true,
+                            deleteDirs: true,
+                            disableDeferredWipeout: true,
+                            notFailBuild: true)
+                  }
+                }
+  
                 dir('checkout') {
                   checkout scm
                 }
