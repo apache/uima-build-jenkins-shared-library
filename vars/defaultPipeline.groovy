@@ -63,7 +63,9 @@ def call(body) {
           axes {
             axis {
                 name 'PLATFORM'
-                values 'ubuntu', 'Windows'
+// https://github.com/apache/uima-build-jenkins-shared-library/issues/5
+//                values 'ubuntu', 'Windows'
+                values 'ubuntu'
             }
           }
   
