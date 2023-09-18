@@ -65,12 +65,14 @@ def call(body) {
                 name 'PLATFORM'
 // https://github.com/apache/uima-build-jenkins-shared-library/issues/5
 //                values 'ubuntu', 'Windows'
-                values 'ubuntu'
+//                values 'ubuntu'
+                values 'Windows'
             }
           }
   
           agent {
-            label labelValue ? "(${labelValue}) && ${PLATFORM}" : "${PLATFORM}"
+//            label labelValue ? "(${labelValue}) && ${PLATFORM}" : "${PLATFORM}"
+            label "jenkins-win-azr-10"
           }
           
           options {
